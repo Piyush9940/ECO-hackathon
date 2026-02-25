@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aravalli Intelligence · core spectral & regulatory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #030a07;
+            color: #dcfce7;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.65;
+            pointer-events: none;
+        }
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: repeating-linear-gradient(0deg, rgba(0,255,150,0.02) 0px, rgba(0,0,0,0.4) 2px, transparent 3px);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .wrapper {
+            position: relative;
+            z-index: 20;
+            backdrop-filter: blur(1.5px);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2.2rem;
+        }
+
+        .navbar {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #2b8c5e60;
+            background: rgba(2, 20, 10, 0.7);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 700;
+            font-size: 2rem;
+            background: linear-gradient(145deg, #b2ffd6, #5effbc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo i {
+            color: #60ffb5;
+            filter: drop-shadow(0 0 15px #22ffaa);
+            font-size: 2.4rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #c5ffe3;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid transparent;
+            transition: 0.3s;
+        }
+        .nav-links a:hover {
+            border-bottom: 1px solid #5affb0;
+            text-shadow: 0 0 20px #44ffaa;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 3rem 0 1.5rem;
+            background: linear-gradient(145deg, #ccffdd, #70ffb0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .section-sub {
+            color: #a0e6cc;
+            font-size: 1.3rem;
+            max-width: 900px;
+            margin-bottom: 2.5rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2.5rem 0;
+        }
+        .info-card {
+            background: rgba(5, 25, 15, 0.7);
+            backdrop-filter: blur(14px);
+            border: 1.5px solid #39ffaa;
+            border-radius: 40px;
+            padding: 2rem;
+            transform: rotateX(1.2deg) translateZ(10px);
+            box-shadow: 0 0 50px #0affb0;
+            transition: 0.3s;
+        }
+        .info-card:hover {
+            transform: translateZ(30px) rotateX(0deg);
+            box-shadow: 0 0 100px #5effb2;
+        }
+        .info-card i {
+            font-size: 2.8rem;
+            color: #d0ffd0;
+            filter: drop-shadow(0 0 25px #00ee99);
+            margin-bottom: 1.2rem;
+        }
+        .info-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+        .info-card p, .info-card ul {
+            color: #d0f5e2;
+        }
+        .info-card ul {
+            list-style: none;
+            padding-left: 0.2rem;
+        }
+        .info-card li {
+            margin: 0.6rem 0;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 40px;
+            border: 2px solid #34ffa0;
+            background: rgba(0, 20, 8, 0.7);
+            backdrop-filter: blur(12px);
+            margin: 2.5rem 0;
+            box-shadow: 0 0 70px #1affa2;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem;
+            min-width: 1000px;
+        }
+        th {
+            background: #0c462b;
+            color: #eeffee;
+            padding: 1.3rem 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #3effa5;
+        }
+        td {
+            padding: 1.2rem;
+            border-bottom: 1px solid #256b40;
+            color: #e0f5e6;
+        }
+        .symbol {
+            background: #19552e;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #6effb0;
+            font-family: monospace;
+        }
+
+        .logic-panels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .panel-deep {
+            background: #0b251bb0;
+            backdrop-filter: blur(18px);
+            border: 2px solid #55ffb0;
+            border-radius: 50px;
+            padding: 2.5rem;
+            flex: 1 1 400px;
+            transform: rotateY(1deg) rotateX(0.5deg);
+            box-shadow: 0 0 90px #1affa0;
+        }
+        .panel-deep pre {
+            color: #d5ffe8;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1.05rem;
+            white-space: pre-wrap;
+        }
+
+        .formula-neon {
+            background: #0f2b1c;
+            border: 3px solid #3effa5;
+            border-radius: 70px;
+            padding: 2.5rem 3rem;
+            font-size: 2rem;
+            text-align: center;
+            box-shadow: 0 0 120px #33ffaa;
+            margin: 4rem 0;
+        }
+
+        .sustain-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .sustain-item {
+            background: #0d2b1b;
+            border: 2px solid #2affa5;
+            border-radius: 40px;
+            padding: 2rem;
+            flex: 1 1 180px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .sustain-item i {
+            font-size: 3rem;
+            color: #9effcf;
+        }
+        .sustain-item:hover {
+            transform: scale(1.05) translateZ(30px);
+            box-shadow: 0 0 90px #50ffb3;
+        }
+
+        footer {
+            background: #03150b;
+            border-top: 2px solid #30ffb0;
+            padding: 2rem 0;
+            margin-top: 5rem;
+        }
+
+        hr {
+            border: 1px solid #2b8c5e60;
+            margin: 3rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="scanline"></div>
+    <div class="wrapper">
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo"><i class="fas fa-satellite-dish"></i> ARAVALLI·INTEL</div>
+            <div class="nav-links">
+                <a href="#">HOME</a>
+                <a href="#">DRIFT·MAP</a>
+                <a href="#analysis-lab.html"  onclick="window.location.href='analysis-lab.html'">ANALYSIS-LAB</a>
+                <a href="#">REPORTS</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- hero purely informational -->
+        <div style="padding: 5rem 0 2rem;">
+            <span style="background:#0f4429; padding:0.5rem 2rem; border-radius:60px; border:1px solid #55ffbb;">⚡ UNSUPERVISED LAND-DRIFT DETECTION · ARAVALLI GREEN SHIELD</span>
+            <h1 style="font-size:4.2rem; font-weight:700; line-height:1; margin:2rem 0; background: linear-gradient(145deg, #b6ffd0, #5effb0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ECOLOGICAL PULSE:<br>FROM SATELLITE TO ENFORCEMENT</h1>
+            <p style="font-size:1.4rem; max-width:800px; color:#c0f2dd;">Autonomous, unsupervised monitoring of illegal mining, urban encroachment, and slow degradation using Sentinel‑2, VIIRS nightlights, and 3D geospatial rules. No training labels — pure anomaly intelligence.</p>
+        </div>
+
+        <!-- core indicators expanded (no team) -->
+        <h2 class="section-title">🔍 VITAL SIGNALS & INDICATORS</h2>
+        <div class="card-grid">
+            <div class="info-card"><i class="fas fa-seedling"></i><h3>NDVI / EVI</h3><p>Normalized Difference Vegetation Index. Sudden persistent drop → vegetation loss / mining. Theil-Sen negative slope (< -0.15/yr) indicates degradation.</p></div>
+            <div class="info-card"><i class="fas fa-mound"></i><h3>BSI (Bare Soil)</h3><p>Bare Soil Index. Sharp rise (+0.15) concurrent with NDVI drop → excavation, soil removal, mining signature.</p></div>
+            <div class="info-card"><i class="fas fa-lightbulb"></i><h3>NTL volatility</h3><p>Nighttime lights (VIIRS). Coefficient of variation >1.5 in historically dark area → new industrial activity, 24/7 operations.</p></div>
+            <div class="info-card"><i class="fas fa-water"></i><h3>NDWI & pit lakes</h3><p>Water index rise >0.30 after mining signature → abandoned quarry lake, regulatory concern.</p></div>
+            <div class="info-card"><i class="fas fa-chart-line"></i><h3>Z-score anomaly</h3><p>|Z| > 2.0 vs. historical monthly mean (5+ years) → statistically extreme change, independent of season.</p></div>
+            <div class="info-card"><i class="fas fa-mountain"></i><h3>DEM + 100m rule</h3><p>SRTM elevation cross-referenced with Supreme Court 100m hill rule. Any excavation above 100m → automatic critical flag.</p></div>
+        </div>
+
+        <!-- detailed variable table -->
+        <h2 class="section-title">📊 MULTI-SPECTRAL VARIABLES & DRIFT SIGNATURE</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>variable</th><th>symbol</th><th>source</th><th>temporal scale</th><th>anomaly threshold</th><th>ecological meaning</th></tr></thead>
+                <tbody>
+                    <tr><td>Vegetation index</td><td><span class="symbol">NDVI</span></td><td>Sentinel-2</td><td>monthly</td><td>Z_NDVI < -2  or slope < -0.15/yr</td><td>forest clearance, degradation</td></tr>
+                    <tr><td>Bare soil index</td><td><span class="symbol">BSI</span></td><td>Sentinel-2</td><td>monthly</td><td>ΔBSI > +0.15 (3-month)</td><td>excavation, topsoil removal</td></tr>
+                    <tr><td>Water index</td><td><span class="symbol">NDWI</span></td><td>Sentinel-2</td><td>monthly</td><td>+0.3 after dry period</td><td>mining pit lake, reservoir</td></tr>
+                    <tr><td>Nightlight</td><td><span class="symbol">NTL</span></td><td>NASA VIIRS</td><td>monthly</td><td>CV > 1.5 or radiance doubling</td><td>new infrastructure, illegal operation</td></tr>
+                    <tr><td>Elevation change</td><td><span class="symbol">ΔDEM</span></td><td>SRTM / LiDAR</td><td>annual</td><td>>5m local reduction</td><td>large-scale excavation</td></tr>
+                    <tr><td>Rainfall</td><td><span class="symbol">P</span></td><td>CHIRPS</td><td>monthly</td><td>below 10th percentile</td><td>context for natural vegetation stress</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ========= NEW CONTENT : SPECTRAL INDICES DEEP-DIVE ========= -->
+        <h2 class="section-title">🧪 SPECTRAL INDICES & INTERPRETATION</h2>
+        <div class="card-grid">
+            <div class="info-card"><i class="fas fa-calculator"></i><h3>NDVI = (NIR-RED)/(NIR+RED)</h3><p>Strong correlation with green biomass. Healthy forest: 0.6–0.8. Drift alert: value drops below 0.2 persistently. Mining signature often sees NDVI &lt;0.15.</p></div>
+            <div class="info-card"><i class="fas fa-calculator"></i><h3>BSI = ((SWIR+RED)-(NIR+BLUE))/((SWIR+RED)+(NIR+BLUE))</h3><p>High BSI (>0.25) indicates bare soil, fallow, or excavation. New mining sites show BSI increase >0.2 within 3 months.</p></div>
+            <div class="info-card"><i class="fas fa-calculator"></i><h3>NDWI = (GREEN-NIR)/(GREEN+NIR)</h3><p>High values (>0.3) indicate open water. Monitors formation of pit lakes in abandoned mines — water accumulation can signal mine closure or illegal water bodies.</p></div>
+            <div class="info-card"><i class="fas fa-calculator"></i><h3>NTL radiance (nanoWatts/cm²/sr)</h3><p>Monthly composite from VIIRS. Background rural: 0–5. Mine site with night activity: >30. Illegal mines often show sudden NTL appearance.</p></div>
+        </div>
+
+        <!-- ========= NEW CONTENT : CHANGE-POINT ALGORITHMS ========= -->
+        <h2 class="section-title">⏱️ CHANGE-POINT & TREND ALGORITHMS</h2>
+        <div class="logic-panels">
+            <div class="panel-deep">
+                <h3 style="font-size:2rem;">📈 BFAST (Breaks for Additive Seasonal and Trend)</h3>
+                <pre>
+• Decomposes time series into trend, seasonal, and noise components.
+• Iteratively detects structural breaks in both trend and seasonality.
+• In Aravalli: break in trend = persistent land-cover change (e.g., forest to mine).
+• Seasonality break = change in phenological pattern (e.g., irrigated to barren).
+• Implemented on Google Earth Engine (GEE) for each 10m pixel.
+                </pre>
+            </div>
+            <div class="panel-deep">
+                <h3 style="font-size:2rem;">📉 Theil-Sen estimator (robust slope)</h3>
+                <pre>
+• Non-parametric median of pairwise slopes — insensitive to outliers.
+• Used for NDVI trend over 5+ years.
+• Slope < -0.015 per month (≈ -0.18/yr) flags degradation.
+• Combined with Mann-Kendall test for significance.
+                </pre>
+            </div>
+            <div class="panel-deep">
+                <h3 style="font-size:2rem;">🔄 CUSUM & PyCUSP</h3>
+                <pre>
+• Cumulative sum charts for early change detection.
+• PyCUSP (Python CUSP) detects subtle shifts in time series mean.
+• Applied to NTL and NDVI for rapid onset of activity (mining start).
+                </pre>
+            </div>
+            <div class="panel-deep">
+                <h3 style="font-size:2rem;">🌲 Isolation Forest (unsupervised)</h3>
+                <pre>
+• Ensemble method that isolates anomalies via random partitioning.
+• Feature space: NDVI Z-score, BSI Z-score, NTL CV, slope, BFAST break magnitude.
+• Anomaly score > 0.6 → high-drift candidate.
+                </pre>
+            </div>
+        </div>
+
+        <!-- ========= NEW CONTENT : REGULATORY KNOWLEDGE BASE ========= -->
+        <h2 class="section-title">⚖️ REGULATORY KNOWLEDGE BASE (RAJASTHAN / INDIA)</h2>
+        <div class="card-grid">
+            <div class="info-card"><i class="fas fa-gavel"></i><h3>Mines & Minerals (Development and Regulation) Act, 1957</h3><p>Mandates that all mining must have a valid lease. Our system cross-references digitized lease boundaries from DMG Rajasthan. Outside lease → illegal.</p></div>
+            <div class="info-card"><i class="fas fa-scale-balanced"></i><h3>Supreme Court 100m Hill Rule (2018)</h3><p>Prohibits mining on hills with elevation >100m above local relief in Aravalli region. DEM analysis flags any excavation above this contour.</p></div>
+            <div class="info-card"><i class="fas fa-water"></i><h3>Environment (Protection) Act, 1986 & Wetland Rules</h3><p>Mining within 50m of water bodies, forest land, or protected areas is prohibited. GIS buffers automatically trigger violation.</p></div>
+            <div class="info-card"><i class="fas fa-tree"></i><h3>Forest (Conservation) Act, 1980</h3><p>Diversion of forest land for non-forestry requires central approval. Any drift inside notified forest → critical alert + forest department notification.</p></div>
+        </div>
+
+        <!-- composite drift score formula -->
+        <div class="formula-neon">
+            <span style="font-size:2.5rem;">🧿 DRIFT SCORE (0–100) = 0.4·|Z_NDVI| + 0.25·|Z_BSI| + 0.2·(CVₙₜₗ) + 0.15·(|TheilSlope|·200)</span><br>
+            <span style="font-size:1.5rem; color:#acffd0;">threshold: >45 → anomaly, >70 → high-priority mining alert (cross‑reference legal boundaries)</span>
+        </div>
+
+        <!-- additional informational block: regulatory cross-ref detail  -->
+        <h2 class="section-title">📌 LEGAL & REGULATORY CROSS‑REFERENCE LAYERS</h2>
+        <div class="card-grid">
+            <div class="info-card"><i class="fas fa-file-contract"></i><h3>mining leases (DMG)</h3><p>Official polygons from Dept. of Mines & Geology (Rajasthan). Stored in PostGIS. Any detected mining outside these → SUSPECT ILLEGAL.</p></div>
+            <div class="info-card"><i class="fas fa-gavel"></i><h3>100m hill rule (SC)</h3><p>Supreme Court: no mining on hills >100m local relief. DEM + slope analysis triggers CRITICAL if violated.</p></div>
+            <div class="info-card"><i class="fas fa-tree"></i><h3>forest / eco buffers</h3><p>Notified forest boundaries, 50m river buffers. Mining inside → automatic violation report.</p></div>
+            <div class="info-card"><i class="fas fa-map"></i><h3>protected areas</h3><p>Wildlife sanctuaries, reserve forests — any drift inside flagged as severe.</p></div>
+        </div>
+
+        <!-- sustainability extended  -->
+        <h2 class="section-title">🌍 ECOLOGICAL & SOCIAL IMPACT METRICS</h2>
+        <div class="sustain-grid">
+            <div class="sustain-item"><i class="fas fa-droplet"></i><h3>groundwater recharge</h3><p>Aravalli protects Delhi-NCR aquifer; preventing excavation preserves 2.4 bn m³ recharge.</p></div>
+            <div class="sustain-item"><i class="fas fa-wind"></i><h3>desertification barrier</h3><p>Stops Thar expansion; vegetation loss reduced by early alerts.</p></div>
+            <div class="sustain-item"><i class="fas fa-paw"></i><h3>biodiversity</h3><p>corridor for leopards, hyenas; fragmentation alerts enable protection.</p></div>
+            <div class="sustain-item"><i class="fas fa-city"></i><h3>urban climate</h3><p>green buffer for Delhi, Gurugram; temperature regulation preserved.</p></div>
+            <div class="sustain-item"><i class="fas fa-clock"></i><h3>response time</h3><p>from months to <7 days after drift detection.</p></div>
+            <div class="sustain-item"><i class="fas fa-chart-pie"></i><h3>replicable</h3><p>framework applicable to Western Ghats, Satpura, any global eco-region.</p></div>
+        </div>
+
+        <!-- technical stack -->
+        <h2 class="section-title">🛰️ DATA & PROCESSING STACK</h2>
+        <div style="background:#0b2b1d; border-radius:70px; padding:2.5rem; border:2px solid #47ffa5; margin:3rem 0;">
+            <div style="display:flex; flex-wrap:wrap; gap:2.5rem; justify-content:center;">
+                <span><i class="fab fa-google" style="color:#a0ffc0;"></i> Earth Engine</span>
+                <span><i class="fas fa-satellite"></i> Sentinel-2 (MSI)</span>
+                <span><i class="fas fa-moon"></i> NASA Black Marble VIIRS</span>
+                <span><i class="fas fa-mountain"></i> SRTM DEM</span>
+                <span><i class="fas fa-tint"></i> CHIRPS rainfall</span>
+                <span><i class="fas fa-code"></i> Python / Xarray / Dask</span>
+                <span><i class="fas fa-brain"></i> Scikit-learn (IsolationForest, DBSCAN)</span>
+                <span><i class="fas fa-chart-line"></i> BFAST / PyCUSP</span>
+                <span><i class="fas fa-map"></i> PostGIS / BigQuery GIS</span>
+                <span><i class="fas fa-file-pdf"></i> ReportLab (auto reports)</span>
+                <span><i class="fas fa-cube"></i> Planet NICFI (high-res verification)</span>
+            </div>
+        </div>
+
+        <!-- footer purely institutional -->
+    </div>
+
+    <footer>
+        <div class="container" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+            <span><i class="fas fa-database"></i> ARAVALLI INTELLIGENCE · UNSUPERVISED DRIFT SYSTEM v2.3</span>
+            <span><i class="fas fa-map-location"></i> live coverage: Aravalli range · 6-day revisit</span>
+            <span><i class="fas fa-flask"></i> purely informational · open framework</span>
+        </div>
+    </footer>
+
+    </div> <!-- wrapper -->
+
+    <script>
+        // Three.js background 
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x051008);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 18);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // lights
+        const dirLight = new THREE.DirectionalLight(0xaaffcc, 1.0);
+        dirLight.position.set(1, 2, 4);
+        scene.add(dirLight);
+        const ambient = new THREE.AmbientLight(0x226644);
+        scene.add(ambient);
+        const pointLight = new THREE.PointLight(0x33ff99, 0.8, 30);
+        pointLight.position.set(-2, 3, 5);
+        scene.add(pointLight);
+
+        const gridHelper = new THREE.GridHelper(40, 30, 0x44ffaa, 0x227755);
+        gridHelper.position.y = -2;
+        scene.add(gridHelper);
+
+        // floating geometric shapes
+        const shapes = [];
+        for (let i = 0; i < 10; i++) {
+            let geom;
+            if (i % 3 === 0) geom = new THREE.IcosahedronGeometry(0.6, 0);
+            else if (i % 3 === 1) geom = new THREE.TorusKnotGeometry(0.35, 0.12, 64, 8);
+            else geom = new THREE.BoxGeometry(0.7, 0.7, 0.7);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x33ee99, emissive: 0x115533, wireframe: i%2===0 });
+            const mesh = new THREE.Mesh(geom, mat);
+            const angle = (i / 10) * Math.PI * 2;
+            mesh.position.set(Math.cos(angle)*7, Math.sin(i)*1.2, Math.sin(angle)*7 - 4);
+            scene.add(mesh);
+            shapes.push(mesh);
+        }
+
+        const particleGeo = new THREE.BufferGeometry();
+        const particleCount = 600;
+        const positions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            positions[i*3] = (Math.random() - 0.5) * 50;
+            positions[i*3+1] = (Math.random() - 0.5) * 20;
+            positions[i*3+2] = (Math.random() - 0.5) * 30;
+        }
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMat = new THREE.PointsMaterial({ color: 0x88ffbb, size: 0.07, transparent: true });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = Date.now() * 0.0005;
+            shapes.forEach((mesh, idx) => {
+                mesh.rotation.x += 0.006;
+                mesh.rotation.y += 0.008;
+                mesh.position.y = Math.sin(time + idx) * 1.0;
+            });
+            particles.rotation.y += 0.0002;
+            camera.position.x = Math.sin(time*0.15)*2;
+            camera.lookAt(0,0,-3);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
