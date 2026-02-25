@@ -1,0 +1,22 @@
+ 
+numpy
+pandas
+matplotlib
+opencv-python
+scikit-learn
+xgboost
+
+ 
+rasterio
+scipy
+affine
+attrs
+
+ 
+torch
+torchvision
+segmentation-models-pytorch
+albumentations
+
+# Deployment
+streamlit
